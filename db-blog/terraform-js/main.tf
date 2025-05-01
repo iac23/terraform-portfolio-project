@@ -4,14 +4,14 @@ provider "aws" {
 
 # S3 Bucket
 resource "aws_s3_bucket" "nextjs_bucket" {
-    bucket = "nextjs-portfolio-bucket-db"
+    bucket = "nextjs-portfolio-bckt-db"
 }
 
 # Ownership control
 resource "aws_s3_bucket_ownership_controls" "nextjs_bucket_ownership_control" {
     bucket = aws_s3_bucket.nextjs_bucket.id
     rule {
-        object_ownership = "BucketOwnerPrefferred"
+        object_ownership = "BucketOwnerPreferred"
     }
 }
 # Block Public Access
@@ -28,7 +28,7 @@ resource "aws_s3_bucket_public_access_block" "nextjs_bucket_public_access_block"
 resource "aws_s3_bucket_acl" "nextjs_bucket_acl" {
 
     depends_on = [
-        aws_s3_bucket_ownership_controls.nextjs,
+        aws_s3_bucket_ownership_controls.nextjs_bucket_ownership_control,
         aws_s3_bucket_public_access_block.nextjs_bucket_public_access_block
     ]
 
@@ -41,8 +41,8 @@ resource "aws_s3_bucket_acl" "nextjs_bucket_acl" {
 resource "aws_s3_bucket_policy" "nextjs_bucket_policy" {
     bucket = aws_s3_bucket.nextjs_bucket.id
 
-   policy = jsondecode(({
-    version = "2012-10-17"
+   policy = jsonencode({
+    Version = "2012-10-17"
     Statement = [{
         Sid = "PublicReadGetObject"
         Effect = "Allow"
@@ -52,7 +52,7 @@ resource "aws_s3_bucket_policy" "nextjs_bucket_policy" {
 
 
     }]
-   }))
+   })
 }
 
 # Origin Access Identity
@@ -102,7 +102,7 @@ resource "aws_cloudfront_distribution" "nextjs_distribution" {
 
     restrictions {
         geo_restriction {
-          restriction_type = none
+          restriction_type = "none"
 
         }
     }
