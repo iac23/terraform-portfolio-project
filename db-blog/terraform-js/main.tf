@@ -46,12 +46,13 @@ resource "aws_s3_bucket_policy" "nextjs_bucket_policy" {
     Statement = [{
         Sid = "PublicReadGetObject"
         Effect = "Allow"
-        Principal = "*"
+        Principal = {
+            CanonicalUser = aws_cloudfront_origin_access_identity.origin_access_identity.s3_canonical_user_id
+        }
         Action = "s3:GetObject"
         Resource = "${aws_s3_bucket.nextjs_bucket.arn}/*"
-
-
-    }]
+        }
+    ]
    })
 }
 
@@ -64,7 +65,7 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
 resource "aws_cloudfront_distribution" "nextjs_distribution" {
   
   origin {
-    domain_name = aws_s3_bucket.nextjs_bucket.regional_domain_name,
+    domain_name = aws_s3_bucket.nextjs_bucket.bucket_domain_name
     origin_id = "S3-nextjs-portfolio-bucket"
 
     s3_origin_config {
@@ -74,7 +75,7 @@ resource "aws_cloudfront_distribution" "nextjs_distribution" {
 
     enabled = true
     is_ipv6_enabled = true
-    comment = 'Next.js portfolio site'
+    comment = "Next.js portfolio site"
     default_root_object = "index.html"
 
     default_cache_behavior {
@@ -95,16 +96,12 @@ resource "aws_cloudfront_distribution" "nextjs_distribution" {
     }
 
     viewer_certificate {
-        
         cloudfront_default_certificate = true
-
     }
 
     restrictions {
         geo_restriction {
           restriction_type = "none"
-
         }
     }
 }
-
